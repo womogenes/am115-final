@@ -1,0 +1,15 @@
+[
+  ["Harvard Square", "harvard_square"],
+  ["MIT", "mit"],
+  ["University of Washington, Seattle", "uw_seattle"],
+  ["University of Chicago", "uchicago"],
+  ["Dartmouth University", "dartmouth"],
+  ["Boston University", "boston_university"],
+  ["Princeton University", "princeton"],
+  ["Stanford University", "stanford"],
+  ["Yale University", "yale"],
+  ["Johns Hopkins University", "johns_hopkins"],
+  ["University of Pennsylvania", "upenn"],
+  ["University of California, Los Angeles", "ucla"],
+  ["National Taiwan University", "national_taiwan_university"]
+]
