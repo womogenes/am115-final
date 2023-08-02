@@ -12,11 +12,17 @@ import osmnx as ox
 from tqdm import tqdm
 
 
-def angle(linestring):
+def angle(a, b):
     """Get angle between two end points, in radians"""
-    a, b = linestring.coords[:2]
     if np.isclose(a[0], b[0]): return np.pi / 2
     return math.atan2(b[1] - a[1], b[0] - a[0])
+
+
+def end_angles(linestring):
+    return (
+        angle(*linestring.coords[:2]),
+        angle(*linestring.coords[-2:])
+    )
 
 
 def generate_adj_list(G):
@@ -35,10 +41,12 @@ def generate_adj_list(G):
 
     for idx, row in tqdm(list(edges.iterrows()), ncols=100):
         u, v = row["u"], row["v"]
+        angles = end_angles(row[geometry_col])
         adj[u].append((
             v,
             round(row[length_col], 3),
-            round(angle(row[geometry_col]), 3)
+            round(angles[0], 3),
+            round(angles[1], 3)
         ))
     
     return adj
@@ -48,7 +56,7 @@ if __name__ == "__main__":
     with open("./places.json") as fin:
         places = json.load(fin)
 
-        for placename, slug in places:
+        for placename, coords, slug in places:
             print(f"Creating adjacency list for {placename} (slug: {slug})")
             
             print(f"Reading graph file...")
