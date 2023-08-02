@@ -18,14 +18,17 @@ def download(placename, slug, verbose=False, overwrite=False):
         # network_type="drive",
         custom_filter='["highway"~"footway"]'
     )
+    # Remove duplicate edges
+    og_edges = list(G.edges)
+    for u, v, i in og_edges:
+        if i > 0:
+            G.remove_edge(u, v, i)            
     if verbose: print(f"  Finished downloading in {time.time() - start_time:.3f} seconds")
 
-    os.makedirs(f"./data/drive/{slug}", exist_ok=True)
     if verbose: print(f"  Saving to {save_path}...")
     with open(save_path, "wb") as fout:
         pkl.dump(G, fout)
     if verbose: print()
-
 
 
 if __name__ == "__main__":

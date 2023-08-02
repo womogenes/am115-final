@@ -4,6 +4,8 @@ For each place, download boba within a certain distance of that place.
 
 import os
 import json
+import numpy as np
+import pickle
 import pandas as pd
 import requests
 from tqdm import tqdm
@@ -42,6 +44,7 @@ def download_boba_gdf(placename, slug):
             break
     
     gdf = pd.DataFrame.from_records(shops)
+    gdf.sort_index()
 
     # Find more accurate locations
     print(f"Geocoding {len(gdf)} locations...")
@@ -50,10 +53,20 @@ def download_boba_gdf(placename, slug):
         addr = f"{loc['address1']}, {loc['city']}, {loc['zip_code']}"
         try:
             lat, long = ox.geocoder.geocode(addr)
-            gdf.loc[index,"geometry"] = Point(long, lat)
+        except:
+            long, lat = row["coordinates"]["longitude"], row["coordinates"]["latitude"]
+        
+        gdf.loc[index,"geometry"] = Point(long, lat)
 
-        except Exception as e:
-            gdf.drop(index=index, axis=0)
+    gdf = gdf[["id", "geometry", "alias", "name", "rating", "price"]]
+
+    print(f"Dropping shops outside the network...")
+    with open(f"./data/networks/{slug}.pkl", "rb") as fin:
+        G = pickle.load(fin)
+    X, Y = [g.x for g in gdf.geometry], [g.y for g in gdf.geometry]
+    _, node_dists = ox.nearest_nodes(G, X, Y, return_dist=True)
+    node_dists = np.array(node_dists)
+    gdf.drop(index=np.where(node_dists >= 200)[0], inplace=True)
 
     os.makedirs(f"./data/boba", exist_ok=True)
     save_path = f"./data/boba/{slug}.csv"
