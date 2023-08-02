@@ -2,6 +2,7 @@ import os
 import math
 import numpy as np
 import json
+import pickle
 
 import pickle as pkl
 from collections import defaultdict
@@ -34,10 +35,13 @@ def generate_adj_list(G):
 
     for idx, row in tqdm(list(edges.iterrows()), ncols=100):
         u, v = row["u"], row["v"]
-        adj[u].append((v, row[length_col], angle(row[geometry_col])))
+        adj[u].append((
+            v,
+            round(row[length_col], 3),
+            round(angle(row[geometry_col]), 3)
+        ))
     
     return adj
-
 
 
 if __name__ == "__main__":
@@ -56,9 +60,9 @@ if __name__ == "__main__":
             print(f"Generating adjacency list...")
             adj = generate_adj_list(G)
             
-            print(f"Saving file as json...")
+            print(f"Saving file as pickle...")
             os.makedirs("./data/adj_lists", exist_ok=True)
-            with open(f"./data/adj_lists/{slug}.json", "w") as fout:
-                json.dump(adj, fout)
+            with open(f"./data/adj_lists/{slug}.pkl", "wb") as fout:
+                pickle.dump(adj, fout)
 
             print()
