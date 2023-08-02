@@ -1,10 +1,15 @@
 import random
+import os
 import numpy as np
 
 import json
 import pickle
 import geopandas as gpd
 import osmnx as ox
+
+from tqdm import tqdm
+
+from data import get_data
 
 def get_end_nodes(G, boba_gdf):
     """
@@ -28,11 +33,16 @@ def angle_diff(a, b):
     if diff > np.pi/2: return diff - np.pi
     return diff
 
+
 # Keep visiting nodes till we hit something in end_nodes
-def random_walk(adj, end_nodes, start, timeout=60*2.5):
+def random_walk(adj, end_nodes, start, timeout=60*2.5, angle_cutoff=np.pi/6, forward_weight=8):
     """
     Do a random walk starting from node <start> (node id)
         until we hit a boba shop, hit a dead end, or time out.
+    
+    angle_cutoff and forward_weight are used to determine how
+        much more likely the agent is to walk forward than to
+        take a turn.
 
     Timeout is in seconds. If we haven't reached a boba shop or
         a dead end by that time, we terminate.
@@ -40,9 +50,10 @@ def random_walk(adj, end_nodes, start, timeout=60*2.5):
     Returns an ordered tuple:
         [0] route:        list of tuples (node id, time)
         [1] total_time:   total amount of time taken
-        [3] flag:         "success", "timeout", or "deadend"
+        [2] flag:         "success", "timeout", or "deadend"
     """
     cur = start
+    prev = None  # Don't want to go backwards
     cur_time = 0
     cur_angle = None
     route = []
@@ -60,23 +71,50 @@ def random_walk(adj, end_nodes, start, timeout=60*2.5):
         # Out of all neighbors, small angle has higher weighting
         weights = np.ones(len(adj[cur]))
         for i, edge in enumerate(adj[cur]):
-            _, _, angle = edge
-            if 
+            nbr, _, angle = edge
+            if cur_angle != None and angle_diff(cur_angle, angle) < angle_cutoff:
+                weights[i] = forward_weight
+            if nbr == prev:
+                weights[i] = 1e-9
 
+        chosen_edge_idx = np.random.choice(range(len(adj[cur])), p=(weights / weights.sum()))
+        nbr, length, _ = adj[cur][chosen_edge_idx]
+        cur_time += length / 4 / 1000 * 60  # Walking speed is 4 kph, convert to minutes
 
-if __name__ == "__main__":
-    with open("./places.json") as fin:
-        places = json.load(fin)
+        prev = cur
+        cur = nbr
 
-    for placename, slug in places:
-        print(f"Reading boba locations...")
-        with open(f"./data/boba/{slug}.csv") as fin:
-            boba_gdf = gpd.read_file(
-                f"./data/{slug}.csv",
-                GEOM_POSSIBLE_NAMES="geometry", 
-                KEEP_GEOM_COLUMNS="NO"
-            )
+def random_walks(place, n_starts, n_samples, timeout=60*2.5):
+    # Do many random walks from many starting locations
+    placename, coords, slug = place
+    print(f"Doing walks from {placename}...")
 
-        with open(f"./data/adj_lists/{slug}.json") as fin:
-            adj = json.load(fin)
+    G, adj, boba_gdf = get_data(slug)
+    end_nodes = get_end_nodes(G, boba_gdf)
+    print(f"Data imported.")
+
+    # Sample lots of starting locations
+    starts = random.choices(list(G.nodes()), k=n_starts)
+    records = {}
+    for start in tqdm(starts, ncols=100):
+        times = []
+        steps = []
+        flags = []
+        for _ in range(n_samples):
+            route, total_time, flag = random_walk(adj, end_nodes, start, timeout=timeout)
+            times.append(total_time)
+            steps.append(len(route))
+            flags.append(flag)
         
+        records[start] = {
+            "times": times,
+            "steps": steps,
+            "flags": flags
+        }
+    
+    print(f"Saving {n_starts * n_samples:,} walks...")
+    os.makedirs(f"./output/walk_trials", exist_ok=True)
+    with open(f"./output/walk_trials/{slug}.pkl", "w") as fout:
+        pickle.dump(records, fout, separators=(",", ":"))
+
+    return records

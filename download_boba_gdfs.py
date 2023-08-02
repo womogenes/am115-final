@@ -18,8 +18,9 @@ load_dotenv()
 
 API_KEY = os.environ["YELP_API_KEY"]
 
-def download_boba_gdf(placename, slug):
-    y, x = ox.geocoder.geocode(placename)
+def download_boba_gdf(place):
+    placename, coords, slug = place
+
     shops = []
     for page in range(20):
         headers = {"Authorization": f"Bearer {API_KEY}"}
@@ -27,7 +28,7 @@ def download_boba_gdf(placename, slug):
         params = {
             "term": "bubble tea",
             "categories": "bubbletea, boba",
-            "latitude": y, "longitude": x,
+            "latitude": coords[0], "longitude": coords[1],
             "radius": 10000,
             "offset": page * 50,
             "limit": 50
@@ -58,7 +59,7 @@ def download_boba_gdf(placename, slug):
         
         gdf.loc[index,"geometry"] = Point(long, lat)
 
-    gdf = gdf[["id", "geometry", "alias", "name", "rating", "price"]]
+    gdf = gdf[gdf.columns.intersection(["id", "geometry", "alias", "name", "rating", "price"])]
 
     print(f"Dropping shops outside the network...")
     with open(f"./data/networks/{slug}.pkl", "rb") as fin:
@@ -79,8 +80,8 @@ if __name__ == "__main__":
         places = json.load(fin)
 
     for i, place in enumerate(places):
-        placename, slug = place
+        placename, coords, slug = place
         
         print(f"[{i:>2}/{len(places)}] Getting boba locations near {placename} (slug: {slug})")
-        download_boba_gdf(placename, slug)
+        download_boba_gdf(place)
         print()
