@@ -1,11 +1,15 @@
-import osmnx as ox
 import datetime as dt
 import time
 import os
 import json
 import pickle as pkl
 
+import osmnx as ox
+import networkx as nx
+
 def download(place, verbose=False, overwrite=False):
+    placename, coords, slug = place
+
     save_path = f"./data/networks/{slug}.pkl"
     if not overwrite and os.path.exists(save_path):
         if verbose: print(f"  File already exists. Skipping...")
@@ -42,7 +46,7 @@ if __name__ == "__main__":
         print(f"[{dt.datetime.now():%H:%M:%S}] Downloading \"{placename}\", slug: {slug}")
 
         try:
-            download(place, verbose=True)
+            download(place, verbose=True, overwrite=True)
 
         except Exception as err:
             print(f"\n===== ERRROR [{dt.datetime.now():%H:%M:%S}] =====")
