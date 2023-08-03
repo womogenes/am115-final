@@ -46,7 +46,7 @@ if __name__ == "__main__":
         print(f"[{dt.datetime.now():%H:%M:%S}] Downloading \"{placename}\", slug: {slug}")
 
         try:
-            download(place, verbose=True, overwrite=True)
+            download(place, verbose=True, overwrite=False)
 
         except Exception as err:
             print(f"\n===== ERRROR [{dt.datetime.now():%H:%M:%S}] =====")

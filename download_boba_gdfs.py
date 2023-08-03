@@ -18,8 +18,12 @@ load_dotenv()
 
 API_KEY = os.environ["YELP_API_KEY"]
 
-def download_boba_gdf(place):
-    placename, coords, slug = place
+def download_boba_gdf(place, overwrite=False):
+    placename, coords, slug = place    
+    save_path = f"./data/boba/{slug}.csv"
+
+    if not overwrite and os.path.exists(save_path):
+        print(f"  File {save_path} already exists. Skipping...")
 
     shops = []
     for page in range(20):
@@ -70,7 +74,6 @@ def download_boba_gdf(place):
     gdf.drop(index=np.where(node_dists >= 200)[0], inplace=True)
 
     os.makedirs(f"./data/boba", exist_ok=True)
-    save_path = f"./data/boba/{slug}.csv"
     gdf.to_csv(save_path, index=False)
     print(f"Saved {len(gdf)} boba shops in {placename} to {save_path}")
 
@@ -83,5 +86,6 @@ if __name__ == "__main__":
         placename, coords, slug = place
         
         print(f"[{i:>2}/{len(places)}] Getting boba locations near {placename} (slug: {slug})")
-        download_boba_gdf(place)
+
+        download_boba_gdf(place, overwrite=False)
         print()

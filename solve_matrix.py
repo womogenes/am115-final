@@ -108,18 +108,18 @@ if __name__ == "__main__":
         states = create_states(adj)
 
         results = {"expected_time": {}, "states": states}
-        for angle_deg in [0, 30, 60, 90]:
-            for forward_favor in [1e-4, 0.5, 1, 2, 3, 4, 5, 8, 20]:
-                print(f"  * angle_deg={angle_deg}, forward_favor={forward_favor}".ljust(60), end="")
+        param_space = np.array(np.meshgrid(
+            [0, 30, 45, 60, 90, 120, 135],
+            [1e-4, 0.5, 1, 2, 3, 4, 5, 10, 20, 100]
+        )).reshape((2, -1)).T
 
-                expected_time = matrix_method(
-                    adj, states, end_nodes,
-                    angle_cutoff=deg_to_rad(angle_deg),
-                    forward_favor=forward_favor
-                )
-                results["expected_time"][(angle_deg, forward_favor)] = expected_time
-            
-                print(f"avg. time: {np.mean(expected_time):3f} mins")
+        for angle_deg, forward_favor in tqdm(param_space, ncols=100):
+            expected_time = matrix_method(
+                adj, states, end_nodes,
+                angle_cutoff=deg_to_rad(angle_deg),
+                forward_favor=forward_favor
+            )
+            results["expected_time"][(angle_deg, forward_favor)] = expected_time
         
         os.makedirs("./output/matrix_method", exist_ok=True)
         print(f"Done. Saving to {save_path}...")

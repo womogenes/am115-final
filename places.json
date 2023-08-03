@@ -11,5 +11,7 @@
   ["Johns Hopkins University", [39.3299, -76.62051], "johns_hopkins"],
   ["University of Pennsylvania", [39.95221, -75.19321], "upenn"],
   ["University of California, Los Angeles", [34.06991, -118.4438], "ucla"],
-  ["National Taiwan University", [25.01734, 121.53975], "national_taiwan_university"]
+  ["National Taiwan University", [25.01734, 121.53975], "national_taiwan_university"],
+  ["Lakeside School", [47.73182, -122.32736], "lakeside"],
+  ["Interlake High School", [47.62893, -122.12404], "interlake"]
 ]
