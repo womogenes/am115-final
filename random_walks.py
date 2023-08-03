@@ -10,6 +10,7 @@ import osmnx as ox
 from tqdm import tqdm
 
 from data import get_data
+from utils import angle_diff
 
 def get_end_nodes(G, boba_gdf):
     """
@@ -25,13 +26,6 @@ def get_end_nodes(G, boba_gdf):
             end_nodes[edge[0]] = shop_id
 
     return end_nodes
-
-
-def angle_diff(a, b):
-    diff = a - b
-    if diff < -np.pi/2: return diff + np.pi
-    if diff > np.pi/2: return diff - np.pi
-    return diff
 
 
 # Keep visiting nodes till we hit something in end_nodes

@@ -47,9 +47,10 @@ def generate_adj_list(G):
             round(row[length_col], 3),
             round(angles[0], 3),
             round(angles[1], 3)
-        ))
+        ))    
+        adj[u].sort()
     
-    return adj
+    return dict(adj)
 
 
 if __name__ == "__main__":

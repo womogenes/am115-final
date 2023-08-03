@@ -1,4 +1,11 @@
+import numpy as np
 import colorsys
+
+def angle_diff(a, b):
+    diff = a - b
+    if diff < -np.pi: return diff + np.pi
+    if diff > np.pi: return diff - np.pi
+    return diff
 
 def float2color(f):
     """
