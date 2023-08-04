@@ -29,7 +29,7 @@ def get_end_nodes(G, boba_gdf):
 
 
 # Keep visiting nodes till we hit something in end_nodes
-def random_walk(adj, end_nodes, start, timeout=60*2.5, angle_cutoff=np.pi/6, forward_weight=8):
+def random_walk(adj, end_nodes, start, timeout=60*2.5, angle_cutoff=np.pi/3, forward_weight=5):
     """
     Do a random walk starting from node <start> (node id)
         until we hit a boba shop, hit a dead end, or time out.
@@ -65,18 +65,20 @@ def random_walk(adj, end_nodes, start, timeout=60*2.5, angle_cutoff=np.pi/6, for
         # Out of all neighbors, small angle has higher weighting
         weights = np.ones(len(adj[cur]))
         for i, edge in enumerate(adj[cur]):
-            nbr, _, angle = edge
-            if cur_angle != None and angle_diff(cur_angle, angle) < angle_cutoff:
+            nbr, _, angle1, _ = edge
+            if cur_angle != None and abs(angle_diff(cur_angle, angle1)) < angle_cutoff:
                 weights[i] = forward_weight
             if nbr == prev:
                 weights[i] = 1e-9
 
         chosen_edge_idx = np.random.choice(range(len(adj[cur])), p=(weights / weights.sum()))
-        nbr, length, _ = adj[cur][chosen_edge_idx]
+        nbr, length, _, angle2 = adj[cur][chosen_edge_idx]
         cur_time += length / 4 / 1000 * 60  # Walking speed is 4 kph, convert to minutes
 
+        cur_angle = angle2
         prev = cur
         cur = nbr
+
 
 def random_walks(place, n_starts, n_samples, timeout=60*2.5):
     # Do many random walks from many starting locations

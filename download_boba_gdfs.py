@@ -24,6 +24,7 @@ def download_boba_gdf(place, overwrite=False):
 
     if not overwrite and os.path.exists(save_path):
         print(f"  File {save_path} already exists. Skipping...")
+        return
 
     shops = []
     for page in range(20):
